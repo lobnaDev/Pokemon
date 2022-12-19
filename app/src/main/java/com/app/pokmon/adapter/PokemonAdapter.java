@@ -33,10 +33,12 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonV
     @Override
     public void onBindViewHolder(PokemonViewHolder holder, int position) {
         // TODO: Bind the data with View
-        holder.pokemonName.setText(model.get(position).getName());
+
 
         Glide.with(mContext).load(model.get(position).getUrl())
                 .into(holder.pokemonImage);
+
+        holder.pokemonName.setText(model.get(position).getName());
     }
 
     @Override
@@ -48,6 +50,9 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonV
         this.model = List;
         notifyDataSetChanged();
 
+    }
+    public Pokemon getPokemonAt(int position){
+        return model.get(position);
     }
 
     public class PokemonViewHolder extends RecyclerView.ViewHolder {

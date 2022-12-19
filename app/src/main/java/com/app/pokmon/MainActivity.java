@@ -1,11 +1,18 @@
 package com.app.pokmon;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.app.pokmon.adapter.PokemonAdapter;
 import com.app.pokmon.model.Pokemon;
@@ -13,6 +20,9 @@ import com.app.viewmodels.PokemonViewModel;
 
 import java.util.ArrayList;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
 
     private PokemonViewModel viewModel;
@@ -28,8 +38,18 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.pokemon_recyclerView);
         adapter = new PokemonAdapter(this);
         recyclerView.setAdapter(adapter);
+        setupSwipe();
 
-        viewModel = new ViewModelProvider(this).get(PokemonViewModel.class);
+        Button toFavBtn = findViewById(R.id.to_fav_button);
+        toFavBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, FavActivity.class));
+            }
+        });
+
+        viewModel = new ViewModelProvider(MainActivity.this).get(PokemonViewModel.class);
+
 
         viewModel.getPokemons();
         viewModel.getPokemonList().observe(this, new Observer<ArrayList<Pokemon>>() {
@@ -40,5 +60,27 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    private void setupSwipe(){
+        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int swipedPokemonPosition = viewHolder.getAdapterPosition();
+                Pokemon swipedPokemon = adapter.getPokemonAt(swipedPokemonPosition);
+                viewModel.insertPokemon(swipedPokemon);
+                adapter.notifyDataSetChanged(); //refresh after swipe
+                Toast.makeText(MainActivity.this, "pokemon added to database", Toast.LENGTH_SHORT).show();
+
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 }
